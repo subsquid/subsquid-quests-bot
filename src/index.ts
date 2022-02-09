@@ -1,11 +1,12 @@
-import Discord, { Intents } from 'discord.js'
+import { Client, Collection, Intents } from 'discord.js'
 
 
 const discordBotToken = process.env.TOKEN || undefined // environment variable TOKEN must be set
 
 ;(async () => {
   
-    const client = new Discord.Client({ intents: [Intents.FLAGS.GUILDS] });
+    const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+    // client.commands = new Collection();
 
     client.once("ready", async () => {
       console.log('Discord.js client ready');
