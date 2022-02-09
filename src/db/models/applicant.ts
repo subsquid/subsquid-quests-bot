@@ -1,5 +1,5 @@
 import db from '../db'
-import { DataTypes, Op, Model } from 'sequelize'
+import { DataTypes, Model } from 'sequelize'
 
 class Applicant extends Model {}
 
@@ -10,3 +10,5 @@ Applicant.init({
   },
   discordHandle: {type: DataTypes.STRING, allowNull: false},
 }, {modelName: 'applicant', sequelize: db})
+
+export default Applicant
