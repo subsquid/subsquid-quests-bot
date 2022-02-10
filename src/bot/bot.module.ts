@@ -17,7 +17,7 @@ import { BotGateway } from './bot.gateway';
         removeGlobalCommands: true,
         registerCommandOptions: [
           {
-            forGuild: configService.get('GUILD_ID'),
+            forGuild: configService.get('GUILD_ID_WITH_COMMANDS'),
             allowFactory: (message: Message) =>
               !message.author.bot && message.content === '!deploy',
             removeCommandsBefore: true,
@@ -27,6 +27,6 @@ import { BotGateway } from './bot.gateway';
       inject: [ConfigService],
     }),
   ],
-  providers: [BotGateway]
+  // providers: [BotGateway]
 })
 export class BotModule {}
