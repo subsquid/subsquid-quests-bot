@@ -2,7 +2,7 @@ import {
   Command,
   DiscordCommand,
 } from '@discord-nestjs/core';
-import { CommandInteraction, GuildMemberRoleManager, InteractionReplyOptions } from 'discord.js';
+import { CommandInteraction, GuildMember, GuildMemberRoleManager } from 'discord.js';
 
 @Command({
   name: 'createquest',
@@ -10,16 +10,13 @@ import { CommandInteraction, GuildMemberRoleManager, InteractionReplyOptions } f
 })
 export class CreateQuestCommand implements DiscordCommand {
     
-  handler(interaction: CommandInteraction): InteractionReplyOptions {
+  handler(interaction: CommandInteraction): void {
+
+    const serverUser = interaction.member as GuildMember;
     if(!(interaction.member.roles as GuildMemberRoleManager).cache.some(role => role.name === 'Admin')) {
-      return {
-        content: "Forbidden",
-        ephemeral: true
-      }
+      serverUser.send("Forbidden");
     }
-    return {
-      content: "OK",
-      ephemeral: true
-    }
+    serverUser.send("OK");
+    
   }
 }
