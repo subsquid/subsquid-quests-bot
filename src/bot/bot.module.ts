@@ -1,4 +1,4 @@
-import { DiscordModule } from '@discord-nestjs/core';
+import { DiscordModule, DiscordModuleOption } from '@discord-nestjs/core';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Intents, Message } from 'discord.js';
@@ -23,10 +23,10 @@ import { BotGateway } from './bot.gateway';
             removeCommandsBefore: true,
           },
         ],
-      }),
+      } as DiscordModuleOption),
       inject: [ConfigService],
     }),
   ],
-  // providers: [BotGateway]
+  providers: [BotGateway]
 })
 export class BotModule {}

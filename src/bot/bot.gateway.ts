@@ -10,7 +10,7 @@ export class BotGateway {
   @Once('ready')
   onReady(): void {
     this.logger.log(
-      `Logged in as ${this.discordProvider.getClient().user.tag}!`,
+      `Logged in as ${this.discordProvider.getClient()?.user?.tag}!`,
     );
   }
 }

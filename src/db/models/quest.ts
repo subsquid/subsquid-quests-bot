@@ -1,5 +1,5 @@
 import db from '../db'
-import { DataTypes, Op, Model } from 'sequelize'
+import { DataTypes, Model } from 'sequelize'
 
 class Quest extends Model {}
 
