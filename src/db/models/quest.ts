@@ -1,21 +1,34 @@
-import db from '../db'
-import { DataTypes, Model } from 'sequelize'
+import { BelongsToMany, DataType, Default, Min, Model } from 'sequelize-typescript'
+import { Column, IsDate, Table } from 'sequelize-typescript'
+import { Applicant } from './applicant'
 
-class Quest extends Model {}
+@Table
+export class Quest extends Model {
 
-Quest.init({
-  id: {
-    type: DataTypes.BIGINT,
-    primaryKey: true,
-  },
-  title: {type: DataTypes.STRING, allowNull: false},
-  description: DataTypes.STRING,
-  rewards: DataTypes.STRING,
-  status: DataTypes.ENUM('OPEN','CLAIMED','INREVIEW','CLOSED'),
-  blocktime: DataTypes.BIGINT,
-  assignee: DataTypes.STRING,
-  maxApplicants: DataTypes.INTEGER,
-  expiresOn: {type: DataTypes.DATE, allowNull: false},
-}, {modelName: 'quest', sequelize: db})
+  @Column
+  title!: string
 
-export default Quest
+  @Column(DataType.TEXT)
+  description!: string
+
+  @Column(DataType.ENUM('OPEN','CLAIMED','INREVIEW','CLOSED'))
+  status!: string
+
+  @Column
+  rewards!: string
+
+  @Column
+  assignee?: string
+
+  @Min(1)
+  @Default(1)
+  @Column
+  maxApplicants!: number
+
+  @IsDate
+  @Column
+  expiresOn!: Date
+
+  @BelongsToMany(() => Applicant, {through: 'quests_applicants', foreignKey: 'applicant_id', otherKey: 'quest_id'})
+  applicants?: Applicant[]
+}

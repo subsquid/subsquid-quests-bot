@@ -1,14 +1,12 @@
-import db from '../db'
-import { DataTypes, Model } from 'sequelize'
+import { BelongsToMany, Column, Model, Table } from 'sequelize-typescript'
+import { Quest } from './quest'
 
-class Applicant extends Model {}
+@Table
+export class Applicant extends Model {
+  
+  @Column
+  discordHandle!: string
 
-Applicant.init({
-  id: {
-    type: DataTypes.BIGINT,
-    primaryKey: true,
-  },
-  discordHandle: {type: DataTypes.STRING, allowNull: false},
-}, {modelName: 'applicant', sequelize: db})
-
-export default Applicant
+  @BelongsToMany(() => Quest, {through: 'quests_applicants', foreignKey: 'applicant_id', otherKey: 'quest_id'})
+  quests!: Quest[]
+}
