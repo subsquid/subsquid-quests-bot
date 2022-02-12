@@ -1,6 +1,6 @@
 import { BelongsToMany, DataType, Default, Min, Model } from 'sequelize-typescript'
 import { Column, IsDate, Table } from 'sequelize-typescript'
-import { Applicant } from './applicant'
+import { Applicant } from './applicant.entity'
 
 @Table
 export class Quest extends Model {
@@ -31,4 +31,5 @@ export class Quest extends Model {
 
   @BelongsToMany(() => Applicant, {through: 'quests_applicants', foreignKey: 'applicant_id', otherKey: 'quest_id'})
   applicants?: Applicant[]
+
 }

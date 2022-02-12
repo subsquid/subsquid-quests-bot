@@ -1,5 +1,5 @@
 import { BelongsToMany, Column, Model, Table } from 'sequelize-typescript'
-import { Quest } from './quest'
+import { Quest } from './quest.entity'
 
 @Table
 export class Applicant extends Model {

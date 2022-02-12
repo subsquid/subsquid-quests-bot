@@ -6,6 +6,8 @@ import {
   UsePipes,
 } from '@discord-nestjs/core';
 import { CommandInteraction, GuildMember, GuildMemberRoleManager, InteractionReplyOptions } from 'discord.js';
+import { Quest } from 'src/db/quest.entity';
+import { QuestsService } from 'src/quests/quests.service';
 import { QuestDto } from './createquest.dto';
 
 @Command({
@@ -14,6 +16,8 @@ import { QuestDto } from './createquest.dto';
 })
 @UsePipes(TransformPipe)
 export class CreateQuestCommand implements DiscordTransformedCommand<QuestDto> {
+
+  constructor(private readonly questsService: QuestsService) {}
 
   async handler(@Payload() dto: QuestDto, interaction: CommandInteraction): Promise<InteractionReplyOptions> {
 
@@ -32,6 +36,7 @@ export class CreateQuestCommand implements DiscordTransformedCommand<QuestDto> {
 
     try {
       console.log(dto.quest);
+      this.questsService.saveQuest({title: '111', description: '', status: 'OPEN', rewards: '', maxApplicants: 1, expiresOn: new Date()} as Quest)
       return {content: '+++++++++++++++++++++++++++'};
     } catch (e) {
       return {

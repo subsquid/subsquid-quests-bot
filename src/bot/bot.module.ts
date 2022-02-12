@@ -2,12 +2,13 @@ import { DiscordModule, DiscordModuleOption } from '@discord-nestjs/core';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Intents, Message } from 'discord.js';
+import { QuestsModule } from 'src/quests/quests.module';
 import { BotGateway } from './bot.gateway';
 
 @Module({
   imports: [
     DiscordModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule, QuestsModule],
       useFactory: (configService: ConfigService) => ({
         token: configService.get('TOKEN'),
         commands: ['**/*.command.js'],

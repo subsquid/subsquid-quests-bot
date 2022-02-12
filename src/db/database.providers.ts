@@ -1,12 +1,16 @@
 import { Sequelize} from 'sequelize-typescript'
 import url from 'url';
-import { Quest } from './models/quest';
-import { Applicant } from './models/applicant';
+import { Quest } from './quest.entity';
+import { Applicant } from './applicant.entity';
+import { Logger } from '@nestjs/common';
+
+const logger = new Logger('DB');
 
 const dbName = process.env.NODE_ENV;
 const dbUrl = process.env.DATABASE_URL || `postgres://localhost:5432/${dbName}`;
 
 const dbConfig = parseConnectionString(dbUrl);
+logger.log(JSON.stringify(dbConfig));
 
 export const databaseProviders = [
   {
@@ -16,7 +20,9 @@ export const databaseProviders = [
         dialect: 'postgres',
         database: dbConfig.database,
         host: dbConfig.host,
-        port: dbConfig.port
+        port: dbConfig.port,
+        username: dbConfig.username,
+        password: dbConfig.password
       });
       sequelize.addModels([Quest, Applicant]);
       await sequelize.sync();
