@@ -35,12 +35,11 @@ export class CreateQuestCommand implements DiscordTransformedCommand<QuestDto> {
     }
 
     try {
-      console.log(dto.quest);
-      this.questsService.saveQuest({title: '111', description: '', status: 'OPEN', rewards: '', maxApplicants: 1, expiresOn: new Date()} as Quest)
+      this.questsService.saveQuest(JSON.parse(dto.quest) as Quest)
       return {content: '+++++++++++++++++++++++++++'};
     } catch (e) {
       return {
-        content: "I can't send you a direct message! Please enable DMs from users on this server",
+        content: "Oops, I have difficult time processing your request. Maybe try again later?",
         ephemeral: true
       }
     }
