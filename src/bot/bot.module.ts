@@ -27,6 +27,7 @@ import { BotGateway } from './bot.gateway';
       } as DiscordModuleOption),
       inject: [ConfigService],
     }),
+    QuestsModule
   ],
   providers: [BotGateway]
 })
