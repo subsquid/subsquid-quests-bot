@@ -33,6 +33,7 @@ export class BotGateway {
       .then((quests: Quest[]) => {
         this.logger.debug(`Announcing ${quests.length} new quests...`);
         quests.forEach((q: Quest) => {
+          q = JSON.parse(JSON.stringify(q));
           this.announceNewQuest(q).then((result: Snowflake) => {
             q.announcementMessageId = result.toString();
             this.questsService.saveQuest(q);
