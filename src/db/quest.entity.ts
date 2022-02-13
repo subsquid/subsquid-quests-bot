@@ -20,6 +20,9 @@ export class Quest extends Model {
   @Column
   assignee?: string
 
+  @Column
+  announcementMessageId?: string //ID of Discord message where this quest was announced. Filled when the Bot announces the Quest
+
   @Min(1)
   @Default(1)
   @Column
