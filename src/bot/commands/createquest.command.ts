@@ -40,7 +40,9 @@ export class CreateQuestCommand implements DiscordTransformedCommand<QuestDto> {
     }
 
     try {
-      this.questsService.saveQuest(JSON.parse(dto.quest) as Quest)
+      const quest = JSON.parse(dto.quest) as Quest
+      quest.status = 'OPEN';
+      this.questsService.saveQuest(quest);
       return {content: '+++++++++++++++++++++++++++'};
     } catch (e) {
       return {
