@@ -30,15 +30,15 @@ export class QuestsService {
   async claimQuest(questId: number, discordUser: string) {
 
     let quest = await this.questsRepository.findByPk(questId, {include: {model: Applicant, required: false}}) as Quest;
-    let questParsed = JSON.parse(JSON.stringify(quest));
+    let questParsed = JSON.parse(JSON.stringify(quest)); // TODO how to avoid this???
     const currentApplicants = (await quest.$get('applicants'))?.map<string>(a => JSON.parse(JSON.stringify(a)).discordHandle);
     if(currentApplicants && !currentApplicants.includes(discordUser)) {
       const applicant = await this.applicantsService.saveApplicant({discordHandle: discordUser} as Applicant) as Applicant;
-      quest.$add<Applicant>('applicants', applicant);
+      await quest.$add<Applicant>('applicants', applicant);
       quest.$count('applicants').then( async cnt => {
-        if(cnt >= quest.maxApplicants) {
-          quest.status = 'CLAIMED';
-          await this.saveQuest(quest);
+        if(cnt >= questParsed.maxApplicants) {
+          questParsed.status = 'CLAIMED';
+          await this.saveQuest(questParsed);
         }
       })
       this.logger.log(`${discordUser} claimed the quest ${questParsed.title}`);
