@@ -33,6 +33,6 @@ export class Quest extends Model {
   expiresOn!: Date
 
   @BelongsToMany(() => Applicant, {through: 'quests_applicants', foreignKey: 'applicant_id', otherKey: 'quest_id'})
-  applicants?: Applicant[]
+  applicants?: Applicant[] = []
 
 }

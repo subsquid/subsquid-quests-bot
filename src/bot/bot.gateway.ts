@@ -5,6 +5,7 @@ import { Quest } from 'src/db/quest.entity';
 import { MessageActionRow, MessageButton, MessageEmbed, Snowflake, TextChannel, MessageOptions } from 'discord.js';
 import { QuestsService } from 'src/quests/quests.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { QuestsMonitor } from './quests.response.monitor';
 
 @Injectable()
 export class BotGateway {
@@ -12,6 +13,7 @@ export class BotGateway {
 
   constructor(
     private readonly discordProvider: DiscordClientProvider,
+    private readonly questsMonitor: QuestsMonitor,
     private readonly questsService: QuestsService) { }
 
   @Once('ready')
@@ -22,19 +24,21 @@ export class BotGateway {
     await this.discordProvider.getClient().channels.fetch(botConfig.announceChannel);
   }
 
-  @Cron(CronExpression.EVERY_30_SECONDS, {
-    name: 'notifications',
-    timeZone: 'Europe/Paris',
-  })
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  restartComponentInteractionListener() {
+    this.questsMonitor.respawnCollector();
+  }
+
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async announceNewQuests(): Promise<void> {
 
     this.logger.debug('Checking for quests that need to be announced...');
     this.questsService.findQuestsToAnnounce()
-      .then((quests: Quest[]) => {
+      .then((quests) => {
         this.logger.debug(`Announcing ${quests.length} new quests...`);
-        quests.forEach((q: Quest) => {
+        quests.forEach((q) => {
           q = JSON.parse(JSON.stringify(q));
-          this.announceNewQuest(q).then((result: Snowflake) => {
+          this.announceNewQuest(q).then((result) => {
             q.announcementMessageId = result.toString();
             this.questsService.saveQuest(q);
           })

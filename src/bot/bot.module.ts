@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Intents, Message } from 'discord.js';
 import { QuestsModule } from 'src/quests/quests.module';
 import { BotGateway } from './bot.gateway';
+import { QuestsMonitor } from './quests.response.monitor';
 
 @Module({
   imports: [
@@ -29,6 +30,6 @@ import { BotGateway } from './bot.gateway';
     }),
     QuestsModule
   ],
-  providers: [BotGateway]
+  providers: [BotGateway, QuestsMonitor]
 })
 export class BotModule {}

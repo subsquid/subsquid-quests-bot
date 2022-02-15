@@ -1,4 +1,4 @@
-import { Applicant } from './applicant.entity';
+import { Applicant } from '../db/applicant.entity';
 
 export const applicantsProviders = [
   {

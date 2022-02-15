@@ -14,6 +14,7 @@ import {
 import { Quest } from 'src/db/quest.entity';
 import { QuestsService } from 'src/quests/quests.service';
 import { QuestDto } from './createquest.dto';
+import { botConfig } from '../../config';
 
 @Command({
   name: 'createquest',
@@ -27,7 +28,7 @@ export class CreateQuestCommand implements DiscordTransformedCommand<QuestDto> {
   async handler(@Payload() dto: QuestDto, interaction: CommandInteraction): Promise<InteractionReplyOptions> {
 
     const serverUser = interaction.member as GuildMember;
-    if (!(interaction.member.roles as GuildMemberRoleManager).cache.some(role => role.name === 'Admin')) {
+    if (!(interaction.member.roles as GuildMemberRoleManager).cache.some(role => Object.values(botConfig.adminRoles).includes(role.name))) {
       try {
         await serverUser.send("Forbidden");
         return {content: '!!!!!!!'};
