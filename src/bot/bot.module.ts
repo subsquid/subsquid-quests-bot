@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Intents, Message } from 'discord.js';
 import { QuestsModule } from 'src/quests/quests.module';
+import { BotEmbeds } from './bot.embeds';
 import { BotGateway } from './bot.gateway';
 import { QuestsMonitor } from './quests.response.monitor';
 
@@ -30,6 +31,6 @@ import { QuestsMonitor } from './quests.response.monitor';
     }),
     QuestsModule
   ],
-  providers: [BotGateway, QuestsMonitor]
+  providers: [BotGateway, BotEmbeds, QuestsMonitor]
 })
 export class BotModule {}

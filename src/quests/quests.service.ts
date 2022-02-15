@@ -17,9 +17,9 @@ export class QuestsService {
 
   async saveQuest(quest: Quest): Promise<void> { //upsert didn't work here. Why?
     if(quest.id) { 
-      this.questsRepository.update({...quest}, {where: {id: quest.id}});
+      await this.questsRepository.update({...quest}, {where: {id: quest.id}});
     } else {
-      this.questsRepository.create({...quest});
+      await this.questsRepository.create({...quest});
     }
   }
 
@@ -27,27 +27,31 @@ export class QuestsService {
     return this.questsRepository.findAll({where: {announcementMessageId: null}});
   }
 
-  async claimQuest(questId: number, discordUser: string): Promise<boolean> {
+  async findOne(questId: number): Promise<Quest | null> {
+    return this.questsRepository.findByPk(questId, {include: {model: Applicant, required: false}});
+  }
 
-    let quest = await this.questsRepository.findByPk(questId, {include: {model: Applicant, required: false}}) as Quest;
-    if(quest.get().status !== 'OPEN') return false;
-    const currentApplicants = (await quest.$get('applicants'))?.map<string>(a => JSON.parse(JSON.stringify(a)).discordHandle);
-    if(currentApplicants && currentApplicants.length < quest.get().maxApplicants && !currentApplicants.includes(discordUser)) {
-      const applicant = await this.applicantsService.saveApplicant({discordHandle: discordUser} as Applicant) as Applicant;
-      await quest.$add<Applicant>('applicants', applicant);
-      quest.$count('applicants').then( async cnt => {
-        if(cnt >= quest.get().maxApplicants) {
-          let questToUpdate = quest.get();
-          questToUpdate.status = 'CLAIMED';
-          await this.saveQuest(questToUpdate);
+  async claimQuest(questId: number, discordUser: string): Promise<boolean> {
+    return await this.questsRepository.sequelize?.transaction( async (tx) => {
+      let quest = await this.findOne(questId) as Quest;
+      let questRaw: Quest = quest.get();
+      if(questRaw.status !== 'OPEN') return false;
+      const currentApplicants = questRaw.applicants?.map<string>(a => JSON.parse(JSON.stringify(a)).discordHandle);
+      if(currentApplicants && currentApplicants.length < questRaw.maxApplicants && !currentApplicants.includes(discordUser)) {
+        const applicant = await this.applicantsService.saveApplicant({discordHandle: discordUser} as Applicant) as Applicant;
+        await quest.$add<Applicant>('applicants', applicant);
+        const applicantCount = await quest.$count('applicants')
+        if(applicantCount >= questRaw.maxApplicants) {
+          questRaw.status = 'CLAIMED';
+          await this.saveQuest(questRaw);
         }
-      })
-      this.logger.log(`${discordUser} claimed the quest ${quest.get().title}`);
-      return true;
-    } else {
-      this.logger.log(`${discordUser} attempted to claim the quest ${quest.get().title} already claimed by them`);
-      return false;
-    }
+        this.logger.log(`${discordUser} claimed the quest ${questRaw.title}`);
+        return true;
+      } else {
+        this.logger.log(`${discordUser} attempted to claim the quest ${questRaw.title} already claimed by them`);
+        return false;
+      }  
+    }) as boolean;
   }
 
   //unused 

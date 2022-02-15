@@ -3,9 +3,11 @@ import url from 'url';
 import { Quest } from './quest.entity';
 import { Applicant } from './applicant.entity';
 import { Logger } from '@nestjs/common';
+import cls  from 'cls-hooked';
 
 const logger = new Logger('DB');
-
+const namespace = cls.createNamespace('subsquid-namespace');
+Sequelize.useCLS(namespace);
 const dbName = process.env.NODE_ENV;
 const dbUrl = process.env.DATABASE_URL || `postgres://localhost:5432/${dbName}`;
 

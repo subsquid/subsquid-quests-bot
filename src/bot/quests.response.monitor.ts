@@ -3,6 +3,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { MessageComponentInteraction, TextChannel } from "discord.js";
 import { QuestsService } from "src/quests/quests.service";
 import { botConfig } from '../config';
+import { BotEmbeds } from "./bot.embeds";
 
 @Injectable()
 export class QuestsMonitor {
@@ -10,7 +11,8 @@ export class QuestsMonitor {
 
     constructor(
         private readonly discordProvider: DiscordClientProvider,
-        private readonly questsService: QuestsService) { }
+        private readonly questsService: QuestsService,
+        private readonly embedsProvider: BotEmbeds) { }
 
     respawnCollector() {
 
@@ -23,9 +25,11 @@ export class QuestsMonitor {
             let split = interaction.customId.split('_');
             if (split[0] === 'claim') {
                 this.questsService.claimQuest(+split[1], `${interaction.user.username}#${interaction.user.discriminator}`).then(
-                    (claimed) => {
+                    async (claimed) => {
                         if (claimed) {
-                            interaction.reply({ content: 'You claimed this Quest!', ephemeral: true })
+                            const quest = await this.questsService.findOne(+split[1]);
+                            interaction.update(this.embedsProvider.prepareQuestAnnounce(quest?.get()))
+                            // interaction.reply({ content: 'You claimed this Quest!', ephemeral: true })
                         } else {
                             interaction.reply({ content: 'Quest not claimed', ephemeral: true })
                         }

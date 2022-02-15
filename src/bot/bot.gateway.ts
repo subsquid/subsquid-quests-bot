@@ -2,10 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Once, DiscordClientProvider } from '@discord-nestjs/core';
 import { botConfig } from '../config';
 import { Quest } from 'src/db/quest.entity';
-import { MessageActionRow, MessageButton, MessageEmbed, Snowflake, TextChannel, MessageOptions } from 'discord.js';
+import { Snowflake, TextChannel } from 'discord.js';
 import { QuestsService } from 'src/quests/quests.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { QuestsMonitor } from './quests.response.monitor';
+import { BotEmbeds } from './bot.embeds';
 
 @Injectable()
 export class BotGateway {
@@ -14,7 +15,8 @@ export class BotGateway {
   constructor(
     private readonly discordProvider: DiscordClientProvider,
     private readonly questsMonitor: QuestsMonitor,
-    private readonly questsService: QuestsService) { }
+    private readonly questsService: QuestsService,
+    private readonly embedsProvider: BotEmbeds) { }
 
   @Once('ready')
   async onReady(): Promise<void> {
@@ -39,7 +41,7 @@ export class BotGateway {
           this.logger.debug(`Announcing ${quests.length} new quests...`);
         }
         quests.forEach((q) => {
-          let model = q.get();
+          let model: Quest = q.get(); // get plain JS object
           this.announceNewQuest(model).then((result) => {
             model.announcementMessageId = result.toString();
             this.questsService.saveQuest(model);
@@ -50,44 +52,8 @@ export class BotGateway {
 
   async announceNewQuest(quest: Quest): Promise<Snowflake> {
     const channel: TextChannel = this.discordProvider.getClient().channels.cache.get(botConfig.announceChannel) as TextChannel;
-    const actions = this.createActions(quest);
-    const message = { 
-      content: 'New quest available', 
-      embeds: [this.createAnnouncementEmbed(quest)] 
-    } as MessageOptions;
-    if(actions) {
-      message.components = [actions];
-    }
-    const sentMessage = await channel.send(message);
+    const sentMessage = await channel.send(this.embedsProvider.prepareQuestAnnounce(quest));
     this.logger.debug(`Announced ${sentMessage.id}`);
     return sentMessage.id;
-  }
-
-  createActions(quest: Quest): MessageActionRow {
-    const claimButton = new MessageButton().setCustomId(`claim_${quest.id}`).setLabel('Claim').setStyle('PRIMARY')
-    const unClaimButton = new MessageButton().setCustomId(`unclaim_${quest.id}`).setLabel('Unclaim').setStyle('PRIMARY');
-    const submitForReviewButton = new MessageButton().setCustomId(`submit_${quest.id}`).setLabel('Submit for Review').setStyle('PRIMARY');
-
-    switch(quest.status) {
-      case 'OPEN': 
-        return new MessageActionRow().addComponents([claimButton, unClaimButton]);
-        break;
-      case 'CLAIMED':
-        return new MessageActionRow().addComponents([submitForReviewButton]);
-        break;
-      default: 
-        return null as unknown as MessageActionRow;
-    }
-  }
-
-  createAnnouncementEmbed(q: Quest): MessageEmbed {
-    return new MessageEmbed()
-      .setTitle(`🏛 🏛 🏛 ${q.title}'`)
-      .setDescription(`${q.description}`)
-      .addField('ID', `${q.id}`, true)
-      .addField('Valid until', `${q.expiresOn}`, true)
-      .addField('Workers required', `${q.maxApplicants}`, true)
-      .addField('Reward', `${q.rewards}`, true)
-      .addField('Status', `${q.status}`, true)
   }
 }
