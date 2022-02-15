@@ -29,21 +29,21 @@ export class QuestsService {
 
   async claimQuest(questId: number, discordUser: string) {
 
-    const quest = await this.questsRepository.findByPk(questId, {include: {model: Applicant, required: false}}) as Quest;
-    if(!quest.applicants) {
-      console.log('111')
-      quest.applicants = [{discordHandle: discordUser} as Applicant]
-      await this.saveQuest(quest);
+    let quest = await this.questsRepository.findByPk(questId, {include: {model: Applicant, required: false}}) as Quest;
+    let questParsed = JSON.parse(JSON.stringify(quest));
+    const currentApplicants = (await quest.$get('applicants'))?.map<string>(a => JSON.parse(JSON.stringify(a)).discordHandle);
+    if(currentApplicants && !currentApplicants.includes(discordUser)) {
+      const applicant = await this.applicantsService.saveApplicant({discordHandle: discordUser} as Applicant) as Applicant;
+      quest.$add<Applicant>('applicants', applicant);
+      quest.$count('applicants').then( async cnt => {
+        if(cnt >= quest.maxApplicants) {
+          quest.status = 'CLAIMED';
+          await this.saveQuest(quest);
+        }
+      })
+      this.logger.log(`${discordUser} claimed the quest ${questParsed.title}`);
     } else {
-      const currentApplicants = quest?.applicants?.map<string>(a => a.discordHandle);
-      this.logger.debug(quest?.applicants.length);
-      if(!quest?.applicants || (currentApplicants && !currentApplicants.includes(discordUser))) {
-        // quest?.applicants?.push({discordHandle: discordUser} as Applicant);
-        const applicant = await this.applicantsService.saveApplicant({discordHandle: discordUser} as Applicant) as Applicant;
-        quest.$add<Applicant>('applicants', applicant)
-        this.logger.debug(quest?.applicants.length);
-        await this.saveQuest(quest);
-      }  
+      this.logger.log(`${discordUser} attempted to claim the quest ${questParsed.title} already claimed by them`);
     }
   }
 

@@ -35,7 +35,9 @@ export class BotGateway {
     this.logger.debug('Checking for quests that need to be announced...');
     this.questsService.findQuestsToAnnounce()
       .then((quests) => {
-        this.logger.debug(`Announcing ${quests.length} new quests...`);
+        if(quests.length > 0) {
+          this.logger.debug(`Announcing ${quests.length} new quests...`);
+        }
         quests.forEach((q) => {
           q = JSON.parse(JSON.stringify(q));
           this.announceNewQuest(q).then((result) => {
