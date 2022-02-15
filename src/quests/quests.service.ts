@@ -30,22 +30,22 @@ export class QuestsService {
   async claimQuest(questId: number, discordUser: string): Promise<boolean> {
 
     let quest = await this.questsRepository.findByPk(questId, {include: {model: Applicant, required: false}}) as Quest;
-    let questParsed = JSON.parse(JSON.stringify(quest)); // TODO how to avoid this???
-    if(questParsed.status !== 'OPEN') return false;
+    if(quest.get().status !== 'OPEN') return false;
     const currentApplicants = (await quest.$get('applicants'))?.map<string>(a => JSON.parse(JSON.stringify(a)).discordHandle);
-    if(currentApplicants && currentApplicants.length < questParsed.maxApplicants && !currentApplicants.includes(discordUser)) {
+    if(currentApplicants && currentApplicants.length < quest.get().maxApplicants && !currentApplicants.includes(discordUser)) {
       const applicant = await this.applicantsService.saveApplicant({discordHandle: discordUser} as Applicant) as Applicant;
       await quest.$add<Applicant>('applicants', applicant);
       quest.$count('applicants').then( async cnt => {
-        if(cnt >= questParsed.maxApplicants) {
-          questParsed.status = 'CLAIMED';
-          await this.saveQuest(questParsed);
+        if(cnt >= quest.get().maxApplicants) {
+          let questToUpdate = quest.get();
+          questToUpdate.status = 'CLAIMED';
+          await this.saveQuest(questToUpdate);
         }
       })
-      this.logger.log(`${discordUser} claimed the quest ${questParsed.title}`);
+      this.logger.log(`${discordUser} claimed the quest ${quest.get().title}`);
       return true;
     } else {
-      this.logger.log(`${discordUser} attempted to claim the quest ${questParsed.title} already claimed by them`);
+      this.logger.log(`${discordUser} attempted to claim the quest ${quest.get().title} already claimed by them`);
       return false;
     }
   }

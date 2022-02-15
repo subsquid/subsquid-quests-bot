@@ -39,10 +39,10 @@ export class BotGateway {
           this.logger.debug(`Announcing ${quests.length} new quests...`);
         }
         quests.forEach((q) => {
-          q = JSON.parse(JSON.stringify(q));
-          this.announceNewQuest(q).then((result) => {
-            q.announcementMessageId = result.toString();
-            this.questsService.saveQuest(q);
+          let model = q.get();
+          this.announceNewQuest(model).then((result) => {
+            model.announcementMessageId = result.toString();
+            this.questsService.saveQuest(model);
           })
         })
       })
