@@ -54,6 +54,31 @@ export class QuestsService {
     }) as boolean;
   }
 
+  async submitQuestForReview(questId: number, discordUser: string): Promise<boolean> {
+    let quest: Quest = (await this.findOne(questId) as Quest).get();
+    if(quest.assignee !== discordUser) return false;
+    quest.status = 'INREVIEW';
+    await this.saveQuest(quest);
+    this.logger.log(`${discordUser} submitted the quest '${quest.title}' for review`);
+    return true;
+  }
+
+  async approveQuest(questId: number): Promise<boolean> {
+    let quest: Quest = (await this.findOne(questId) as Quest).get();
+    quest.status = 'CLOSED';
+    await this.saveQuest(quest);
+    this.logger.log(`Quest '${quest.title}' has been approved`);
+    return true;
+  }
+
+  async rejectQuest(questId: number): Promise<boolean> {
+    let quest: Quest = (await this.findOne(questId) as Quest).get();
+    quest.status = 'CLAIMED';
+    await this.saveQuest(quest);
+    this.logger.log(`Quest '${quest.title}' has been rejected`);
+    return true;
+  }
+  
   //unused 
   findCurrentQuestsAnnounced(): Promise<Quest[]> {
     return this.questsRepository.findAll({

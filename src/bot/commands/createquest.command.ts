@@ -7,9 +7,7 @@ import {
 } from '@discord-nestjs/core';
 import { 
   CommandInteraction, 
-  GuildMember, 
   GuildMemberRoleManager, 
-  InteractionReplyOptions 
 } from 'discord.js';
 import { Quest } from 'src/db/quest.entity';
 import { QuestsService } from 'src/quests/quests.service';
@@ -25,31 +23,21 @@ export class CreateQuestCommand implements DiscordTransformedCommand<QuestDto> {
 
   constructor(private readonly questsService: QuestsService) {}
 
-  async handler(@Payload() dto: QuestDto, interaction: CommandInteraction): Promise<InteractionReplyOptions> {
+  async handler(@Payload() dto: QuestDto, interaction: CommandInteraction) {
 
-    const serverUser = interaction.member as GuildMember;
     if (!(interaction.member.roles as GuildMemberRoleManager).cache.some(role => Object.values(botConfig.adminRoles).includes(role.name))) {
-      try {
-        await serverUser.send("Forbidden");
-        return {content: '!!!!!!!'};
-      } catch (e) {
-        return {
-          content: "Forbidden",
-          ephemeral: true
-        }
-      }
-    }
-
-    try {
+      interaction.reply({
+        content: "Forbidden",
+        ephemeral: true
+      })
+    } else {
       const quest = JSON.parse(dto.quest) as Quest
       quest.status = 'OPEN';
       this.questsService.saveQuest(quest);
-      return {content: '+++++++++++++++++++++++++++'};
-    } catch (e) {
-      return {
-        content: "Oops, I have difficult time processing your request. Maybe try again later?",
+      interaction.reply({
+        content: ".",
         ephemeral: true
-      }
+      })  
     }
   }
 }

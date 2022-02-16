@@ -29,9 +29,19 @@ export class QuestsMonitor {
                         if (claimed) {
                             const quest = await this.questsService.findOne(+split[1]);
                             interaction.update(this.embedsProvider.prepareQuestAnnounce(quest?.get()))
-                            // interaction.reply({ content: 'You claimed this Quest!', ephemeral: true })
                         } else {
                             interaction.reply({ content: 'Quest not claimed', ephemeral: true })
+                        }
+                    }
+                )
+            } else if (split[0] === 'submit') {
+                this.questsService.submitQuestForReview(+split[1], `${interaction.user.username}#${interaction.user.discriminator}`).then(
+                    async (submitted) => {
+                        if (submitted) {
+                            const quest = await this.questsService.findOne(+split[1]);
+                            interaction.update(this.embedsProvider.prepareQuestAnnounce(quest?.get()))
+                        } else {
+                            interaction.reply({ content: 'Quest not submitted', ephemeral: true })
                         }
                     }
                 )
