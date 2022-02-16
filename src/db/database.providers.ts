@@ -4,11 +4,12 @@ import { Quest } from './quest.entity';
 import { Applicant } from './applicant.entity';
 import { Logger } from '@nestjs/common';
 import cls  from 'cls-hooked';
+import { botConfig } from '../config';
 
 const logger = new Logger('DB');
 const namespace = cls.createNamespace('subsquid-namespace');
 Sequelize.useCLS(namespace);
-const dbName = process.env.NODE_ENV;
+const dbName = botConfig.database;
 const dbUrl = process.env.DATABASE_URL || `postgres://localhost:5432/${dbName}`;
 
 const dbConfig = parseConnectionString(dbUrl);

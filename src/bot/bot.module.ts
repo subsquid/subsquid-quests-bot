@@ -6,6 +6,7 @@ import { QuestsModule } from 'src/quests/quests.module';
 import { BotEmbeds } from './bot.embeds';
 import { BotGateway } from './bot.gateway';
 import { QuestsMonitor } from './quests.response.monitor';
+import { botConfig } from '../config';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { QuestsMonitor } from './quests.response.monitor';
         removeGlobalCommands: true,
         registerCommandOptions: [
           {
-            forGuild: configService.get('GUILD_ID_WITH_COMMANDS'),
+            forGuild: configService.get(botConfig.server),
             allowFactory: (message: Message) =>
               !message.author.bot && message.content === '!deploy',
             removeCommandsBefore: true,
