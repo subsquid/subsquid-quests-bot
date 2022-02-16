@@ -55,11 +55,15 @@ export class QuestsService {
   }
 
   async submitQuestForReview(questId: number, discordUser: string): Promise<boolean> {
-    let quest: Quest = (await this.findOne(questId) as Quest).get();
-    if(quest.assignee !== discordUser) return false;
-    quest.status = 'INREVIEW';
-    await this.saveQuest(quest);
-    this.logger.log(`${discordUser} submitted the quest '${quest.title}' for review`);
+    let quest = (await this.findOne(questId) as Quest);
+    let questRaw: Quest = quest.get();
+    const currentApplicants = questRaw.applicants?.map<string>(a => JSON.parse(JSON.stringify(a)).discordHandle);
+    if(questRaw.status === 'INREVIEW' || currentApplicants && !currentApplicants.includes(discordUser)) {
+      return false;
+    }
+    questRaw.status = 'INREVIEW';
+    await this.saveQuest(questRaw);
+    this.logger.log(`${discordUser} submitted the quest '${questRaw.title}' for review`);
     return true;
   }
 
@@ -78,7 +82,6 @@ export class QuestsService {
     this.logger.log(`Quest '${quest.title}' has been rejected`);
     return true;
   }
-  
   //unused 
   findCurrentQuestsAnnounced(): Promise<Quest[]> {
     return this.questsRepository.findAll({

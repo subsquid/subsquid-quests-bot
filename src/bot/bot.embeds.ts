@@ -45,9 +45,6 @@ export class BotEmbeds {
           .addField('Status', `${q.status}`, true)
           .setTimestamp();
     
-        if(q.assignee) {
-          announcementEmbed.addField('Assigned', q.assignee, true);
-        }
         if(q.applicants?.length as number > 0) {
           announcementEmbed.addField('Applicants', `${q.applicants?.map((applicant) => 
             `📁 **${applicant.get().discordHandle}**`).join('\n')}`)

@@ -23,23 +23,40 @@ export class QuestsMonitor {
         let collector = channel.createMessageComponentCollector({ filter, time: 10000 });
         collector.on('collect', (interaction) => {
             let split = interaction.customId.split('_');
-            if (split[0] === 'claim') {
-                this.questsService.claimQuest(+split[1], `${interaction.user.username}#${interaction.user.discriminator}`).then(
+            const action = split[0];
+            const questId = split[1];
+            if (action === 'claim') {
+                this.questsService.claimQuest(+questId, `${interaction.user.username}#${interaction.user.discriminator}`).then(
                     async (claimed) => {
                         if (claimed) {
-                            const quest = await this.questsService.findOne(+split[1]);
+                            const quest = await this.questsService.findOne(+questId);
                             interaction.update(this.embedsProvider.prepareQuestAnnounce(quest?.get()))
                         } else {
                             interaction.reply({ content: 'Quest not claimed', ephemeral: true })
                         }
                     }
                 )
-            } else if (split[0] === 'submit') {
-                this.questsService.submitQuestForReview(+split[1], `${interaction.user.username}#${interaction.user.discriminator}`).then(
+            } else if (action === 'submit') {
+                this.questsService.submitQuestForReview(+questId, `${interaction.user.username}#${interaction.user.discriminator}`).then(
                     async (submitted) => {
                         if (submitted) {
-                            const quest = await this.questsService.findOne(+split[1]);
+                            const quest = await this.questsService.findOne(+questId);
                             interaction.update(this.embedsProvider.prepareQuestAnnounce(quest?.get()))
+                            const server = this.discordProvider.getClient().guilds.cache.get(botConfig.server);
+                            if (server) {
+                                botConfig.adminRoles.forEach(roleName => {
+                                    const role = server.roles.cache.find(r => r.name === roleName);
+                                    if (role) {
+                                        role.members.filter(member => !member.user.bot)?.forEach(admin => {
+                                            admin.send({ content: `Time to review the Quest #${questId} !` }).catch()
+                                        })
+                                    } else {
+                                        this.logger.warn(`Admin role ${roleName} not found on this server`);
+                                    }
+                                })
+                            } else {
+                                this.logger.warn('Server not configured! Unable to ping admins');
+                            }
                         } else {
                             interaction.reply({ content: 'Quest not submitted', ephemeral: true })
                         }
