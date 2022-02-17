@@ -1,5 +1,4 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
-import { Op } from 'sequelize';
 import { ApplicantsService } from 'src/applicants/applicants.service';
 import { Applicant } from 'src/db/applicant.entity';
 import { Quest } from '../db/quest.entity';
@@ -69,6 +68,8 @@ export class QuestsService {
       if(isAdmin && currentApplicants?.length === 1 && questRaw.maxApplicants === 1) {
         this.logger.warn(`Unclaiming by admin`);
         await quest.$remove<Applicant>('applicants', questRaw.applicants[0]);
+        questRaw.status = 'OPEN';
+        await this.saveQuest(questRaw);
         return true;
       } else {
         if(currentApplicants && currentApplicants.includes(discordUser)) {
@@ -113,13 +114,5 @@ export class QuestsService {
     await this.saveQuest(quest);
     this.logger.log(`Quest '${quest.title}' has been rejected`);
     return true;
-  }
-  //unused 
-  findCurrentQuestsAnnounced(): Promise<Quest[]> {
-    return this.questsRepository.findAll({
-      where: {
-          status: {[Op.in]: ['OPEN', 'INREVIEW']},
-          announcementMessageId: {[Op.ne]: null}}
-    });
   }
 }
