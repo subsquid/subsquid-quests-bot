@@ -14,13 +14,12 @@ export class BaseQuestCommand {
       const quest = await this.questsService.findOne(questId);
       const channel = this.discordProvider.getClient().channels.cache.find(c => c.id === botConfig.announceChannel);
       if(channel) {
-        console.log(channel.toString());
-        const message = (channel as TextChannel).messages.cache.get(quest?.announcementMessageId || '')
-        console.log(message?.toString());
+        const message = await (channel as TextChannel).messages.fetch(quest?.get().announcementMessageId as string);
         await message?.edit(new BotEmbeds().prepareQuestAnnounce(quest?.get()));
+        interaction.reply({content: 'Ok', ephemeral: true});
       } else {
         interaction.reply({
-          content: ".",
+          content: "Channel not found",
           ephemeral: true
         })
       }

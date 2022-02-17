@@ -21,7 +21,7 @@ import { botConfig } from '../config';
         removeGlobalCommands: true,
         registerCommandOptions: [
           {
-            forGuild: configService.get(botConfig.server),
+            forGuild: botConfig.server,
             allowFactory: (message: Message) =>
               !message.author.bot && message.content === '!deploy',
             removeCommandsBefore: true,
