@@ -1,6 +1,6 @@
 import { DiscordClientProvider } from "@discord-nestjs/core";
 import { Injectable, Logger } from "@nestjs/common";
-import { MessageComponentInteraction, TextChannel } from "discord.js";
+import { GuildMemberRoleManager, MessageComponentInteraction, TextChannel } from "discord.js";
 import { QuestsService } from "src/quests/quests.service";
 import { botConfig } from '../config';
 import { BotEmbeds } from "./bot.embeds";
@@ -21,23 +21,20 @@ export class QuestsMonitor {
     // const message = channel.messages.cache.get(quest.announcementMessageId || '');
     const filter = (i: MessageComponentInteraction) => !i.user.bot;
     let collector = channel.createMessageComponentCollector({ filter, time: 10000 });
+
     collector.on('collect', (interaction) => {
       let split = interaction.customId.split('_');
       const action = split[0];
       const questId = split[1];
       if (action === 'claim') {
-        this.questsService.claimQuest(+questId, `${interaction.user.username}#${interaction.user.discriminator}`).then(
-          async (claimed) => {
-            if (claimed) {
-              const quest = await this.questsService.findOne(+questId);
-              interaction.update(this.embedsProvider.prepareQuestAnnounce(quest?.get()))
-            } else {
-              interaction.reply({ content: 'Quest not claimed', ephemeral: true })
-            }
-          }
-        )
+        this.questsService.claimQuest(+questId, this.buildHandle(interaction))
+          .then(result => this.claimUnclaimCallback(result, interaction, +questId, 'Quest claimed'));
+      } else if(action === 'unclaim') {
+        const admin = (interaction.member.roles as GuildMemberRoleManager).cache.some(role => Object.values(botConfig.adminRoles).includes(role.name));
+        this.questsService.unclaimQuest(+questId, this.buildHandle(interaction), admin)
+          .then(result => this.claimUnclaimCallback(result, interaction, +questId, 'Quest not unclaimed'));
       } else if (action === 'submit') {
-        this.questsService.submitQuestForReview(+questId, `${interaction.user.username}#${interaction.user.discriminator}`).then(
+        this.questsService.submitQuestForReview(+questId, this.buildHandle(interaction)).then(
           async (submitted) => {
             if (submitted) {
               const quest = await this.questsService.findOne(+questId);
@@ -63,12 +60,24 @@ export class QuestsMonitor {
           }
         )
       }
-      // if(split[0] === 'unclaim') {
-      //     this.questsService.claimQuest(+split[1], interaction.user.username);
-      // }
     })
+
     collector.on('end', (collected) => {
       this.logger.debug('Collector expired');
     })
+
+  }
+
+  buildHandle(interaction: MessageComponentInteraction): string {
+    return `${interaction.user.username}#${interaction.user.discriminator}`;
+  }
+
+  async claimUnclaimCallback(success: boolean, interaction: MessageComponentInteraction, questId: number, msg: string) {
+    if (success) {
+      const quest = await this.questsService.findOne(questId);
+      interaction.update(this.embedsProvider.prepareQuestAnnounce(quest?.get()))
+    } else {
+      interaction.reply({ content: msg, ephemeral: true })
+    }
   }
 }

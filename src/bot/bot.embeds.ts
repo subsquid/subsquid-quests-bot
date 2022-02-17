@@ -13,7 +13,9 @@ export class BotEmbeds {
         } as MessageOptions;
         if(actions) {
           message.components = [actions];
-        }    
+        } else {
+          message.components = [];
+        }
         return message;
     }
 
@@ -27,7 +29,7 @@ export class BotEmbeds {
             return new MessageActionRow().addComponents([claimButton, unClaimButton]);
             break;
           case 'CLAIMED':
-            return new MessageActionRow().addComponents([submitForReviewButton]);
+            return new MessageActionRow().addComponents([unClaimButton, submitForReviewButton]);
             break;
           default: 
             return null as unknown as MessageActionRow;

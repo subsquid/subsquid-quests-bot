@@ -9,12 +9,11 @@ export class ApplicantsService {
     private readonly applicantsRepository: typeof Applicant
   ) {}
 
-  async saveApplicant(applicant: Applicant): Promise<[number, Applicant[]] | Applicant> { //upsert didn't work here. Why?
-    if(applicant.id) { 
-      return this.applicantsRepository.update({...applicant}, {where: {id: applicant.id}});
-    } else {
-      return this.applicantsRepository.create({...applicant});
-    }
+  async findOrCreateApplicant(applicant: Applicant): Promise<Applicant> { 
+      return (await this.applicantsRepository.findOrCreate({where: {discordHandle: applicant.discordHandle}, defaults: {...applicant}}))[0]; 
   }
 
+  async findApplicant(applicant: Applicant): Promise<Applicant | null> { 
+    return await this.applicantsRepository.findOne({where: {discordHandle: applicant.discordHandle}}); 
+  }
 }

@@ -35,10 +35,13 @@ export class QuestsService {
     return await this.questsRepository.sequelize?.transaction( async (tx) => {
       let quest = await this.findOne(questId) as Quest;
       let questRaw: Quest = quest.get();
-      if(questRaw.status !== 'OPEN') return false;
-      const currentApplicants = questRaw.applicants?.map<string>(a => JSON.parse(JSON.stringify(a)).discordHandle);
+      if(questRaw.status !== 'OPEN') {
+        this.logger.warn(`Claim not possible for quest in ${questRaw.status} state`);
+        return false;
+      }
+      const currentApplicants = questRaw.applicants?.map<string>(a => a.get().discordHandle);
       if(currentApplicants && currentApplicants.length < questRaw.maxApplicants && !currentApplicants.includes(discordUser)) {
-        const applicant = await this.applicantsService.saveApplicant({discordHandle: discordUser} as Applicant) as Applicant;
+        const applicant = await this.applicantsService.findOrCreateApplicant({discordHandle: discordUser} as Applicant);
         await quest.$add<Applicant>('applicants', applicant);
         const applicantCount = await quest.$count('applicants')
         if(applicantCount >= questRaw.maxApplicants) {
@@ -54,6 +57,35 @@ export class QuestsService {
     }) as boolean;
   }
 
+  async unclaimQuest(questId: number, discordUser: string, isAdmin: boolean): Promise<boolean> {
+    return await this.questsRepository.sequelize?.transaction( async (tx) => {
+      let quest = await this.findOne(questId) as Quest;
+      let questRaw: Quest = quest.get();
+      if( !Object.values(['OPEN', 'CLAIMED']).includes(questRaw.status) ) {
+        this.logger.warn(`Unclaim not possible for quest in ${questRaw.status} state`);
+        return false;
+      }
+      const currentApplicants = questRaw.applicants?.map<string>(a => a.get().discordHandle);
+      if(isAdmin && currentApplicants?.length === 1 && questRaw.maxApplicants === 1) {
+        this.logger.warn(`Unclaiming by admin`);
+        await quest.$remove<Applicant>('applicants', questRaw.applicants[0]);
+        return true;
+      } else {
+        if(currentApplicants && currentApplicants.includes(discordUser)) {
+          const applicant = await this.applicantsService.findApplicant({discordHandle: discordUser} as Applicant) as Applicant;
+          await quest.$remove<Applicant>('applicants', applicant);
+          questRaw.status = 'OPEN';
+          await this.saveQuest(questRaw);
+          this.logger.log(`${discordUser} unclaimed the quest ${questRaw.title}`);
+          return true;
+        } else {
+          this.logger.log(`${discordUser} attempted to unclaim the quest ${questRaw.title}`);
+          return false;
+        }  
+      }
+    }) as boolean;
+  }
+  
   async submitQuestForReview(questId: number, discordUser: string): Promise<boolean> {
     let quest = (await this.findOne(questId) as Quest);
     let questRaw: Quest = quest.get();
