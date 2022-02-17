@@ -12,6 +12,7 @@ export class BaseQuestCommand {
 
   async updateQuestAnnnouncement(questId: number, interaction: CommandInteraction) {
       const quest = await this.questsService.findOne(questId);
+      console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
       const channel = this.discordProvider.getClient().channels.cache.find(c => c.id === botConfig.announceChannel);
       if(channel) {
         const message = await (channel as TextChannel).messages.fetch(quest?.get().announcementMessageId as string);

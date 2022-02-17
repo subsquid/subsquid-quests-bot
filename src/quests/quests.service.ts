@@ -101,18 +101,24 @@ export class QuestsService {
   }
 
   async approveQuest(questId: number): Promise<boolean> {
-    let quest: Quest = (await this.findOne(questId) as Quest).get();
-    quest.status = 'CLOSED';
-    await this.saveQuest(quest);
-    this.logger.log(`Quest '${quest.title}' has been approved`);
-    return true;
+    return await this.questsRepository.sequelize?.transaction( async (tx) => {
+      let quest = (await this.findOne(questId) as Quest);
+      let questRaw: Quest = quest.get();
+      questRaw.status = 'CLOSED';
+      await this.saveQuest(questRaw);
+      this.logger.log(`Quest '${questRaw.title}' has been approved`);
+      return true;
+    }) as boolean;
   }
 
   async rejectQuest(questId: number): Promise<boolean> {
-    let quest: Quest = (await this.findOne(questId) as Quest).get();
-    quest.status = 'CLAIMED';
-    await this.saveQuest(quest);
-    this.logger.log(`Quest '${quest.title}' has been rejected`);
-    return true;
+    return await this.questsRepository.sequelize?.transaction( async (tx) => {
+      let quest = (await this.findOne(questId) as Quest);
+      let questRaw: Quest = quest.get();
+      questRaw.status = 'CLAIMED';
+      await this.saveQuest(questRaw);
+      this.logger.log(`Quest '${questRaw.title}' has been rejected`);
+      return true;
+    }) as boolean;
   }
 }
