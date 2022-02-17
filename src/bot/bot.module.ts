@@ -32,6 +32,6 @@ import { botConfig } from '../config';
     }),
     QuestsModule
   ],
-  providers: [BotGateway, BotEmbeds, QuestsMonitor]
+  providers: [BotGateway, BotEmbeds, QuestsMonitor]
 })
 export class BotModule {}

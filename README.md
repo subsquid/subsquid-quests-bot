@@ -24,3 +24,6 @@ Run the bot in prod environment using `TOKEN=<discord bot token> npm run start:p
 
 ## Troubleshooting
 
+`DiscordAPIError: Missing Access`
+
+Authorize the bot using https://discord.com/oauth2/authorize?client_id=<bot client id>&permissions=1133584&scope=bot
