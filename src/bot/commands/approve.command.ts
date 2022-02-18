@@ -30,7 +30,9 @@ export class ApproveQuestCommand extends BaseQuestCommand implements DiscordTran
   async handler(@Payload() dto: QuestActionDto, interaction: CommandInteraction) {
 
     if (!super.rejectNonAdmins(interaction)) {
-      this.questsService.approveQuest(+dto.questid).then(res => super.updateQuestAnnnouncement(+dto.questid, interaction));
+      this.questsService.approveQuest(+dto.questid)
+        .then(res => super.updateQuestAnnnouncement(+dto.questid, interaction))
+        .then(quest => super.pingApplicants(quest, interaction, 'approved'));
     }
   }
 }

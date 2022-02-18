@@ -18,7 +18,6 @@ export class QuestsMonitor {
 
     this.logger.debug('Restarting the collector');
     const channel: TextChannel = this.discordProvider.getClient().channels.cache.get(botConfig.announceChannel) as TextChannel;
-    // const message = channel.messages.cache.get(quest.announcementMessageId || '');
     const filter = (i: MessageComponentInteraction) => !i.user.bot;
     let collector = channel.createMessageComponentCollector({ filter, time: 10000 });
 
@@ -27,10 +26,12 @@ export class QuestsMonitor {
       const action = split[0];
       const questId = split[1];
       if (action === 'claim') {
-        this.questsService.claimQuest(+questId, this.buildHandle(interaction))
+        this.questsService.claimQuest(+questId, this.buildHandle(interaction), interaction.user.id)
           .then(result => this.claimUnclaimCallback(result, interaction, +questId, 'Quest claimed'));
-      } else if(action === 'unclaim') {
-        const admin = (interaction.member.roles as GuildMemberRoleManager).cache.some(role => Object.values(botConfig.adminRoles).includes(role.name));
+      } else if (action === 'unclaim') {
+        const admin = (interaction.member.roles as GuildMemberRoleManager).cache.some(role => {
+          return botConfig.adminRoles.some(r => r == role.name);
+        });
         this.questsService.unclaimQuest(+questId, this.buildHandle(interaction), admin)
           .then(result => this.claimUnclaimCallback(result, interaction, +questId, 'Quest not unclaimed'));
       } else if (action === 'submit') {

@@ -5,6 +5,9 @@ import { Quest } from './quest.entity'
 export class Applicant extends Model {
   
   @Column
+  discordId!: string
+
+  @Column
   discordHandle!: string
 
   @BelongsToMany(() => Quest, {through: 'quests_applicants', foreignKey: 'applicant_id', otherKey: 'quest_id'})

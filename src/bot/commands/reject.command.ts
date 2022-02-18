@@ -30,7 +30,9 @@ export class RejectQuestCommand extends BaseQuestCommand implements DiscordTrans
   async handler(@Payload() dto: QuestActionDto, interaction: CommandInteraction) {
 
     if(!super.rejectNonAdmins(interaction)) {
-      this.questsService.rejectQuest(+dto.questid).then(res => super.updateQuestAnnnouncement(+dto.questid, interaction));
+      this.questsService.rejectQuest(+dto.questid)
+        .then(res => super.updateQuestAnnnouncement(+dto.questid, interaction))
+        .then(quest => super.pingApplicants(quest, interaction, 'rejected'));
     }
   }
 }
