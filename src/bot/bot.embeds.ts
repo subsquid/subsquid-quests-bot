@@ -24,12 +24,13 @@ export class BotEmbeds {
         const unClaimButton = new MessageButton().setCustomId(`unclaim_${quest.id}`).setLabel('Unclaim').setStyle('PRIMARY');
         const submitForReviewButton = new MessageButton().setCustomId(`submit_${quest.id}`).setLabel('Submit for Review').setStyle('PRIMARY');
     
+        const unclaimButtonNeeded = quest.applicants?.length >=1;
         switch(quest.status) {
           case 'OPEN': 
-            return new MessageActionRow().addComponents([claimButton, unClaimButton]);
+            return new MessageActionRow().addComponents(unclaimButtonNeeded ? [claimButton, unClaimButton]: [claimButton]);
             break;
           case 'CLAIMED':
-            return new MessageActionRow().addComponents([unClaimButton, submitForReviewButton]);
+            return new MessageActionRow().addComponents(unclaimButtonNeeded ? [unClaimButton, submitForReviewButton]: [submitForReviewButton]);
             break;
           default: 
             return null as unknown as MessageActionRow;

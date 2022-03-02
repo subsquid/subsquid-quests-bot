@@ -30,10 +30,10 @@ export class QuestsMonitor {
           .then(result => this.claimUnclaimCallback(result, interaction, +questId, 'Quest claimed'));
       } else if (action === 'unclaim') {
         const admin = (interaction.member.roles as GuildMemberRoleManager).cache.some(role => {
-          return botConfig.adminRoles.some(r => r == role.name);
+          return botConfig.adminRoles.includes(role.name);
         });
         this.questsService.unclaimQuest(+questId, this.buildHandle(interaction), admin)
-          .then(result => this.claimUnclaimCallback(result, interaction, +questId, 'Quest not unclaimed'));
+          .then(result => this.claimUnclaimCallback(result, interaction, +questId, 'Only current claimers of the task can unclaim'));
       } else if (action === 'submit') {
         this.questsService.submitQuestForReview(+questId, this.buildHandle(interaction)).then(
           async (submitted) => {
@@ -56,7 +56,7 @@ export class QuestsMonitor {
                 this.logger.warn('Server not configured! Unable to ping admins');
               }
             } else {
-              interaction.reply({ content: 'Quest not submitted', ephemeral: true })
+              interaction.reply({ content: 'Only current claimers of the task can submit for review', ephemeral: true })
             }
           }
         )
