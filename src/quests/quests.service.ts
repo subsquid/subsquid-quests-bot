@@ -88,6 +88,27 @@ export class QuestsService {
     }) as boolean;
   }
 
+  async unclaimQuestAdmin(questId: number, claimer: string): Promise<boolean> {
+    return await this.questsRepository.sequelize?.transaction(async (tx) => {
+      let quest = await this.findOne(questId) as Quest;
+      let questRaw: Quest = quest.get();
+      if (!Object.values(['OPEN', 'CLAIMED']).includes(questRaw.status)) {
+        this.logger.warn(`Unclaim not possible for quest in ${questRaw.status} state`);
+        return false;
+      }
+      const applicantToUnclaim = questRaw.applicants?.find(a => a.get().discordHandle === claimer);
+      if (applicantToUnclaim) {
+        this.logger.warn(`Unclaiming claim by ${claimer} on Q#${questId} by admin`);
+        await quest.$remove<Applicant>('applicants', applicantToUnclaim);
+        questRaw.status = 'OPEN';
+        await this.saveQuest(questRaw);
+        return true;
+      } else {
+        return false;
+      }
+    }) as boolean;
+  }
+
   async submitQuestForReview(questId: number, discordUser: string): Promise<boolean> {
     let quest = (await this.findOne(questId) as Quest);
     let questRaw: Quest = quest.get();
