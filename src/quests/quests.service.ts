@@ -90,7 +90,8 @@ export class QuestsService {
 
   async unclaimQuestAdmin(questId: number, claimer: string): Promise<boolean> {
     return await this.questsRepository.sequelize?.transaction(async (tx) => {
-      let quest = await this.findOne(questId) as Quest;
+      let quest = await this.findOne(questId);
+      if(!quest) { return false }
       let questRaw: Quest = quest.get();
       if (!Object.values(['OPEN', 'CLAIMED']).includes(questRaw.status)) {
         this.logger.warn(`Unclaim not possible for quest in ${questRaw.status} state`);

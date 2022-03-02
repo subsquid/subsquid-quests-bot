@@ -31,7 +31,13 @@ export class AdminUnclaimQuestCommand extends BaseQuestCommand implements Discor
 
     if (!super.rejectNonAdmins(interaction)) {
       this.questsService.unclaimQuestAdmin(+dto.questid, dto.claimer)
-        .then(res => super.updateQuestAnnnouncement(+dto.questid, interaction))
+        .then(res => {
+          if(res) {
+            super.updateQuestAnnnouncement(+dto.questid, interaction);
+          } else {
+            interaction.reply({ content: `Error: specified user has not claimed the quest, or the quest doesn't exist`, ephemeral: true });
+          }
+        })
     }
   }
 }
