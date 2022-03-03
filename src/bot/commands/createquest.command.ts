@@ -26,6 +26,8 @@ export class CreateQuestCommand implements DiscordTransformedCommand<QuestDto> {
   async handler(@Payload() dto: QuestDto, interaction: CommandInteraction) {
 
     if (!(interaction.member.roles as GuildMemberRoleManager).cache.some(role => Object.values(botConfig.adminRoles).includes(role.name))) {
+      console.log('role mismatch', (interaction.member.roles as GuildMemberRoleManager).cache.map(r => r.name), botConfig.adminRoles)
+
       interaction.reply({
         content: "Forbidden",
         ephemeral: true

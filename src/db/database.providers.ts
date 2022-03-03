@@ -25,7 +25,8 @@ export const databaseProviders = [
         host: dbConfig.host,
         port: dbConfig.port,
         username: dbConfig.username,
-        password: dbConfig.password
+        password: dbConfig.password,
+        logging: process.env.PG_LOG ? Boolean(process.env.PG_LOG) : false,
       });
       sequelize.addModels([Quest, Applicant]);
       await sequelize.sync();
